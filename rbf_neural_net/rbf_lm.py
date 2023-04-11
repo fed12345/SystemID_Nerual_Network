@@ -32,6 +32,7 @@ class RbfLMnet(RbfNet):
         Y, mes_previous = self.evaluate(input, output)
         error = (Y-output).T
         mu_list = np.zeros(epochs)
+        mse_list = np.zeros(epochs)
 
         if not adaptive:
             for i in range(epochs):
@@ -54,7 +55,7 @@ class RbfLMnet(RbfNet):
                 H = np.dot(J.T, J)
 
                 # Calculate weight update
-                variables += np.dot(np.linalg.pinv(H + mu*np.eye(H.shape[0])), grad).flatten()
+                variables -= np.dot(np.linalg.pinv(H + mu*np.eye(H.shape[0])), grad).flatten()
 
                 # Update weights
                 self.IW = variables[:self.hidden_neurons*self.input_neurons].reshape(self.hidden_neurons, self.input_neurons)
@@ -68,7 +69,6 @@ class RbfLMnet(RbfNet):
                     print("Goal reached")
                     break
                 if mse > mes_previous:
-                    print("MSE increased")
                     mes_previous = mse
                     break
 
@@ -105,6 +105,7 @@ class RbfLMnet(RbfNet):
 
                 Y, mse = self.evaluate(input, output)
                 error = (Y-output).T
+                mse_list[i] = mse
                 if mu >1e20:
                     print("Mu too high")
                     break
@@ -123,7 +124,7 @@ class RbfLMnet(RbfNet):
                 mes_previous = mse
                 mu /= 1.01
 
-        return mu_list
+        return mu_list, mse_list
 
     def _calcjacobian(self, input):
         """Calculates the Jacobian matrix for the RBF network
