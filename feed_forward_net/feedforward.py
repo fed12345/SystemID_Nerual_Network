@@ -142,7 +142,7 @@ class FFNet:
             learning_rate (float): learing rate
         """        
         self.bias2 = KMeans(n_clusters=self.output_neurons).fit(output.T.reshape(-1, 1)).cluster_centers_.T
-        variables = np.concatenate((self.IW, self.LW), axis=None)
+        variables = np.concatenate((self.IW, self.LW,self.bias,self.bias2), axis=None)
         Y, previous_mse = self.evaluate(x_data, output)
         error = output - Y
         counter = 0
@@ -174,8 +174,8 @@ class FFNet:
             #Update weights
             self.IW = variables[:self.input_neurons*self.hidden_neurons].reshape(self.hidden_neurons,self.input_neurons)
             self.LW = variables[self.input_neurons*self.hidden_neurons:(self.input_neurons+self.output_neurons)*self.hidden_neurons].reshape(self.output_neurons,self.hidden_neurons)
-            # self.bias = variables[(self.input_neurons+self.output_neurons)*self.hidden_neurons:(self.input_neurons+self.output_neurons+1)*self.hidden_neurons].reshape(self.hidden_neurons,1)
-            # self.bias2 = variables[(self.input_neurons+self.output_neurons+1)*self.hidden_neurons:].reshape(self.output_neurons,1)
+            self.bias = variables[(self.input_neurons+self.output_neurons)*self.hidden_neurons:(self.input_neurons+self.output_neurons+1)*self.hidden_neurons].reshape(self.hidden_neurons,1)
+            self.bias2 = variables[(self.input_neurons+self.output_neurons+1)*self.hidden_neurons:].reshape(self.output_neurons,1)
 
             Y, mse = self.evaluate(x_data, output)
             error = output - Y
@@ -238,7 +238,7 @@ class FFNet:
 
         dedbi = dedyk*dykdvk*dvkdyj*dyjdvj.T*dvjdbi
 
-        J = np.concatenate([np.reshape(dedwij,(n_samples,n_neurons*n_inputs)),dedwjk.T], axis=1)
+        J = np.concatenate([np.reshape(dedwij,(n_samples,n_neurons*n_inputs)),dedwjk.T,dedbi,dedbj], axis=1)
         return J
 
 
